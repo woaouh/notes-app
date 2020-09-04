@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { Button } from '../UI/Button/Button';
-import { Input } from '../UI/Input/Input';
+import React, { useState, useEffect } from 'react';
+import { Button } from '../../UI/Button/Button';
+import { Input } from '../../UI/Input/Input';
 
-export function Form(props) {
-  const initialFormState = { id: null, title: '', text: '' };
-  const [note, setNote] = useState(initialFormState);
+export function EditForm(props) {
+  const [note, setNote] = useState(props.currentNote);
+
+  useEffect(() => {
+    setNote(props.currentNote);
+  }, [props]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -13,10 +16,8 @@ export function Form(props) {
 
   const submitFormHandler = (event) => {
     event.preventDefault();
-    if (!note.title || !note.text) return;
 
-    props.addNote(note);
-    setNote(initialFormState);
+    props.updateNote(note.id, note);
   };
 
   return (
@@ -38,7 +39,8 @@ export function Form(props) {
         change={handleInputChange}
         required
       />
-      <Button>Submit</Button>
+      <Button>Update</Button>
+      <Button clicked={() => props.setEditing(false)}>Cancel</Button>
     </form>
   );
 }

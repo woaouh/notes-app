@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Note } from '../components/Note/Note';
-import { Form } from '../components/Form/Form';
-import { EditForm } from '../components/EditForm/EditForm';
+import { AddForm } from '../components/Form/AddForm';
+import { EditForm } from '../components/Form/EditForm/EditForm';
 
 export function Home() {
   const initialNotes = [
@@ -64,12 +64,15 @@ export function Home() {
 
   return (
     <div>
-      <Form addNote={addNote} />
-      <EditForm
-        setEditing={setEditing}
-        currentNote={currentNote}
-        updateNote={updateNote}
-      />
+      {editing ? (
+        <EditForm
+          setEditing={setEditing}
+          currentNote={currentNote}
+          updateNote={updateNote}
+        />
+      ) : (
+        <AddForm addNote={addNote} />
+      )}
       {notes.map((note) => (
         <Note
           key={note.id}
