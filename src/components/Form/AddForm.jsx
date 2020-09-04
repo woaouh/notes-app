@@ -3,7 +3,7 @@ import { Button } from '../UI/Button/Button';
 import { Input } from '../UI/Input/Input';
 
 export function AddForm(props) {
-  const initialFormState = { id: null, title: '', text: '' };
+  const initialFormState = { title: '', text: '' };
   const [note, setNote] = useState(initialFormState);
 
   const handleInputChange = (event) => {
