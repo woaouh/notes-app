@@ -1,53 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Note } from '../components/Note/Note';
 import { AddForm } from '../components/Form/AddForm';
 import { EditForm } from '../components/Form/EditForm/EditForm';
+import axios from 'axios';
 
 export function Home() {
-  const initialNotes = [
-    {
-      title: 'Note-1',
-      text: 'This is note-1',
-      id: 1,
-    },
-    {
-      title: 'Note-2',
-      text: 'This is note-2',
-      id: 2,
-    },
-    {
-      title: 'Note-3',
-      text: 'This is note-3',
-      id: 3,
-    },
-    {
-      title: 'Note-4',
-      text: 'This is note-4',
-      id: 4,
-    },
-    {
-      title: 'Note-5',
-      text: 'This is note-5',
-      id: 5,
-    },
-    {
-      title: 'Note-6',
-      text: 'This is note-6',
-      id: 6,
-    },
-  ];
   const initialFormState = { id: null, title: '', text: '' };
-  const [notes, setNotes] = useState(initialNotes);
+  const [notes, setNotes] = useState([]);
   const [editing, setEditing] = useState(false);
   const [currentNote, setCurrentNote] = useState(initialFormState);
 
+  function convertObjToArr(obj) {
+    Object.keys(obj).map((key) => {
+      let arr = obj[key];
+      arr.key = key;
+      return arr;
+    });
+  }
+
+  useEffect(() => {
+    axios
+      .get('https://notes-app-d4005.firebaseio.com/notes.json')
+      .then((res) => {
+        if (!res.data) return;
+        const ak = Object.keys(res.data).map((key) => {
+          let arr = res.data[key];
+          arr.key = key;
+          return arr;
+        });
+        setNotes(ak);
+      })
+      .catch((error) => Promise.reject(error));
+  }, []);
+
+  console.log(notes);
+
   const addNote = (note) => {
-    note.id = notes.length + 1;
+    const randomId = parseInt((Math.random() * 10000).toFixed());
+    note.id = randomId;
     setNotes([...notes, note]);
+    axios
+      .post(
+        'https://notes-app-d4005.firebaseio.com/notes.json',
+        JSON.stringify({
+          id: randomId,
+          title: note.title,
+          text: note.text,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      .then((res) => console.log(res));
   };
 
-  const deleteNote = (id) => {
-    setNotes(notes.filter((note) => note.id !== id));
+  const deleteNote = (key) => {
+    setNotes(notes.filter((note) => note.key !== key));
+    const noteToRemove = notes
+      .filter((note) => note.key === key)
+      .map((note) => note.key);
+    axios
+      .delete(
+        `https://notes-app-d4005.firebaseio.com/notes/${noteToRemove}.json`
+      )
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const editNote = (id, title, text) => {
@@ -73,16 +93,21 @@ export function Home() {
       ) : (
         <AddForm addNote={addNote} />
       )}
-      {notes.map((note) => (
-        <Note
-          key={note.id}
-          title={note.title}
-          text={note.text}
-          id={note.id}
-          deleteNote={deleteNote}
-          editNote={editNote}
-        />
-      ))}
+      {notes ? (
+        notes.map((note) => (
+          <Note
+            key={note.key}
+            title={note.title}
+            text={note.text}
+            id={note.id}
+            keyNum={note.key}
+            deleteNote={deleteNote}
+            editNote={editNote}
+          />
+        ))
+      ) : (
+        <div>There is no Notes</div>
+      )}
     </div>
   );
 }
