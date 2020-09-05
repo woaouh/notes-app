@@ -8,6 +8,7 @@ export function Home() {
   const [notes, setNotes] = useState([]);
   const [currentNote, setCurrentNote] = useState({});
   const [editing, setEditing] = useState(false);
+  const [addedTrigger, setAddedTrigger] = useState(0);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -25,9 +26,7 @@ export function Home() {
         .catch((error) => Promise.reject(error));
     };
     fetchNotes();
-  }, []);
-
-  console.log(notes);
+  }, [addedTrigger]);
 
   const addNote = (note) => {
     axios
@@ -38,6 +37,7 @@ export function Home() {
           text: note.text,
         })
       )
+      .then(() => setAddedTrigger(addedTrigger + Math.random()))
       .catch((error) => Promise.reject(error));
   };
 
