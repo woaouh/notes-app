@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import classes from './Home.module.sass';
+
+import axios from 'axios';
+
 import { Note } from '../components/Note/Note';
 import { AddForm } from '../components/Form/AddForm';
 import { EditForm } from '../components/Form/EditForm/EditForm';
-import axios from 'axios';
+import { Loader } from '../components/UI/Loader/Loader';
 
 export function Home() {
   const [notes, setNotes] = useState([]);
   const [currentNote, setCurrentNote] = useState({});
   const [editing, setEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [addedTrigger, setAddedTrigger] = useState(0);
 
   useEffect(() => {
@@ -15,15 +20,18 @@ export function Home() {
       await axios
         .get('https://notes-app-d4005.firebaseio.com/notes.json')
         .then((res) => {
-          if (!res.data) return;
+          if (!res.data) return setIsLoading(false);
           const serializeNotes = Object.keys(res.data).map((key) => {
             let arr = res.data[key];
             arr.id = key;
             return arr;
           });
+          setIsLoading(false);
           setNotes(serializeNotes);
         })
-        .catch((error) => Promise.reject(error));
+        .catch((error) => {
+          Promise.reject(error);
+        });
     };
     fetchNotes();
   }, [addedTrigger]);
@@ -35,6 +43,7 @@ export function Home() {
         JSON.stringify({
           title: note.title,
           text: note.text,
+          date: note.date,
         })
       )
       .then(() => setAddedTrigger(addedTrigger + Math.random()))
@@ -48,9 +57,9 @@ export function Home() {
       .catch((error) => Promise.reject(error));
   };
 
-  const editNote = (id, title, text) => {
+  const editNote = (id, title, text, date) => {
     setEditing(true);
-    setCurrentNote({ id: id, title: title, text: text });
+    setCurrentNote({ id: id, title: title, text: text, date: date });
   };
 
   const updateNote = (id, updatedNote) => {
@@ -60,12 +69,13 @@ export function Home() {
       .put(`https://notes-app-d4005.firebaseio.com/notes/${id}.json`, {
         title: updatedNote.title,
         text: updatedNote.text,
+        date: updatedNote.date,
       })
       .catch((error) => Promise.reject(error));
   };
 
   return (
-    <div>
+    <div className={classes.Home}>
       {editing ? (
         <EditForm
           setEditing={setEditing}
@@ -75,19 +85,24 @@ export function Home() {
       ) : (
         <AddForm addNote={addNote} />
       )}
-      {notes.length ? (
-        notes.map((note) => (
-          <Note
-            key={note.id}
-            id={note.id}
-            title={note.title}
-            text={note.text}
-            deleteNote={deleteNote}
-            editNote={editNote}
-          />
-        ))
+      {isLoading ? (
+        <Loader />
+      ) : notes.length ? (
+        <div className={classes.Notes}>
+          {notes.map((note) => (
+            <Note
+              key={note.id}
+              id={note.id}
+              title={note.title}
+              text={note.text}
+              date={note.date}
+              deleteNote={deleteNote}
+              editNote={editNote}
+            />
+          ))}
+        </div>
       ) : (
-        <div>There is no Notes</div>
+        <div>There is no notes.</div>
       )}
     </div>
   );

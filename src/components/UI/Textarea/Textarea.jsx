@@ -1,15 +1,13 @@
 import React from 'react';
 
-export function Input(props) {
+export function Textarea(props) {
   return (
-    <input
-      className='input'
-      type={props.type}
+    <textarea
+      className='textarea'
       name={props.name}
-      value={props.value}
       placeholder={props.placeholder}
+      value={props.value}
       onChange={props.change}
-      autoFocus={props.required}
       required={props.required}
     />
   );
